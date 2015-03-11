@@ -34,12 +34,34 @@ princessImage.onload = function () {
 };
 princessImage.src = "images/princess.png";
 
+// monst image
+var monstReady = false;
+var monstImage = new Image();
+monstImage.onload = function () {
+	monstReady = true;
+};
+monstImage.src = "images/monster.png";
+
+// stone image
+var stoneReady = false;
+var stoneImage = new Image();
+stoneImage.onload = function () {
+	stoneReady = true;
+};
+stoneImage.src = "images/stone.png";
+
+
+
 // Game objects
 var hero = {
-	speed: 256 // movement in pixels per second
+	speed: 150 // movement in pixels per second
 };
 var princess = {};
+var monst = {
+	speed:25
+};
 var princessesCaught = 0;
+var level = 0;
 
 // Handle keyboard controls
 var keysDown = {};
@@ -58,25 +80,65 @@ var reset = function () {
 	hero.y = canvas.height / 2;
 
 	// Throw the princess somewhere on the screen randomly
-	princess.x = 32 + (Math.random() * (canvas.width - 64));
-	princess.y = 32 + (Math.random() * (canvas.height - 64));
+	princess.x = 32 + (Math.random() * (canvas.width - (64+32)));
+	princess.y = 32 + (Math.random() * (canvas.height - (64+32)));
+
+	monst.x = 32 + (Math.random() * (canvas.width - (64+32)));
+	monst.y = 32 + (Math.random() * (canvas.height - (64+32)));
+	
+	
 };
 
 // Update game objects
 var update = function (modifier) {
+
+	//cada 5 princesas cogidas, aumenta un nivel de dificultad. hasta 5
+	if (level == 5){
+		hero.speed = 130;
+		monst.speed = 35;
+	}
+	if (level == 10){
+		hero.speed = 110;
+		monst.speed = 40;
+	}
+	if (level == 15){
+		hero.speed = 90;
+		monst.speed = 45;
+	}
+	if (level >= 20){
+		hero.speed = 70;
+		monst.speed = 55;
+	}
+	if (level >= 25){
+		hero.speed = 60;
+		monst.speed = 60;
+	}
+	//hero moving
 	if (38 in keysDown) { // Player holding up
 		hero.y -= hero.speed * modifier;
+		if(hero.y < 32){
+			hero.y=32;
+		}
 	}
 	if (40 in keysDown) { // Player holding down
 		hero.y += hero.speed * modifier;
+		if(hero.y > canvas.height-64){
+			hero.y=canvas.height - 64;
+		}
 	}
 	if (37 in keysDown) { // Player holding left
 		hero.x -= hero.speed * modifier;
+		if(hero.x < 32){
+		 	hero.x = 32;
+		}
 	}
 	if (39 in keysDown) { // Player holding right
 		hero.x += hero.speed * modifier;
+		if(hero.x > canvas.width-64){
+			hero.x = canvas.width-64;
+		}
 	}
-
+	
 	// Are they touching?
 	if (
 		hero.x <= (princess.x + 16)
@@ -85,8 +147,34 @@ var update = function (modifier) {
 		&& princess.y <= (hero.y + 32)
 	) {
 		++princessesCaught;
+		++level;
 		reset();
 	}
+
+	
+	//monster moving
+	Ax = monst.x - hero.x;
+	Ay = monst.y - hero.y;
+ 	if(Ax > 0){
+ 		monst.x -= monst.speed * modifier;
+ 	}else if (Ax < 0){
+ 		monst.x += monst.speed * modifier;
+ 	}
+ 	if(Ay > 0){
+ 		monst.y -= monst.speed * modifier;
+ 	}else if (Ay < 0){
+ 		monst.y += monst.speed * modifier;
+ 	}
+
+	//Are hero chaught?
+	if ( monst.x <= (hero.x + 16)
+		&& hero.x <= (monst.x + 16)
+		&& monst.y <= (hero.y + 16)
+		&& hero.y <= (monst.y + 32)
+	) {
+		reset();
+	}
+	
 };
 
 // Draw everything
@@ -102,6 +190,10 @@ var render = function () {
 	if (princessReady) {
 		ctx.drawImage(princessImage, princess.x, princess.y);
 	}
+	if (monstReady){
+		ctx.drawImage(monstImage, monst.x, monst.y);
+	}
+	
 
 	// Score
 	ctx.fillStyle = "rgb(250, 250, 250)";
@@ -115,7 +207,6 @@ var render = function () {
 var main = function () {
 	var now = Date.now();
 	var delta = now - then;
-
 	update(delta / 1000);
 	render();
 
