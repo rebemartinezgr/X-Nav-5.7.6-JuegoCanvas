@@ -61,7 +61,10 @@ var monst = {
 	speed:25
 };
 var princessesCaught = 0;
-var level = 0;
+var level = localStorage.getItem("level");
+if (level == null){ 
+	level = 0;
+}
 
 // Handle keyboard controls
 var keysDown = {};
@@ -93,15 +96,15 @@ var reset = function () {
 var update = function (modifier) {
 
 	//cada 5 princesas cogidas, aumenta un nivel de dificultad. hasta 5
-	if (level == 5){
+	if (level >= 5){
 		hero.speed = 130;
 		monst.speed = 35;
 	}
-	if (level == 10){
+	if (level >= 10){
 		hero.speed = 110;
 		monst.speed = 40;
 	}
-	if (level == 15){
+	if (level >= 15){
 		hero.speed = 90;
 		monst.speed = 45;
 	}
@@ -148,6 +151,8 @@ var update = function (modifier) {
 	) {
 		++princessesCaught;
 		++level;
+		localStorage.setItem("level", level); //guarda el estado
+		
 		reset();
 	}
 
@@ -201,6 +206,7 @@ var render = function () {
 	ctx.textAlign = "left";
 	ctx.textBaseline = "top";
 	ctx.fillText("Princesses caught: " + princessesCaught, 32, 32);
+	ctx.fillText("Level: " + level, 32, 64);
 };
 
 // The main game loop
